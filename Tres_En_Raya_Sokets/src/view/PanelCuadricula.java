@@ -1,4 +1,4 @@
-package client.view;
+package view;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,10 +10,12 @@ public class PanelCuadricula extends JPanel implements MouseListener {
 
     private int posicionx;
     private int posicionY;
+    private Frame frame;
 
-    public PanelCuadricula(int posicionx, int posicionY) {
+    public PanelCuadricula(int posicionx, int posicionY, Frame frame) {
         this.posicionx = posicionx;
         this.posicionY = posicionY;
+        this.frame = frame;
 
         this.add(label);
         label.setBounds(20, 50, 30, 30);
@@ -21,15 +23,19 @@ public class PanelCuadricula extends JPanel implements MouseListener {
         this.addMouseListener(this);
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        // JOptionPane.showMessageDialog(null, "X: " + posicionx + "\n" + " Y: " +
-        // posicionY);
+    public void marcar(String tipo) {
         JLabel marcado = new JLabel();
-        marcado.setText("marcado");
+        marcado.setText(tipo);
         marcado.setBounds(30, 50, 30, 30);
         this.add(marcado);
         this.repaint();
+        this.validate();
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        frame.notificar(posicionx, posicionY);
+
     }
 
     @Override

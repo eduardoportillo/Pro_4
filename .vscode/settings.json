@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "Tres_En_Raya_Sokets/lib/org.json/json-20200518.jar"
+    ]
+}

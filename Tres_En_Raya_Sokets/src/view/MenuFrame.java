@@ -1,22 +1,26 @@
-package client.view;
+package view;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
+import server.serversocket.ServerSocke;
 
 import javax.swing.*;
+
+import client.clientsocket.SessionClienteSocket;
+
 import java.awt.*;
 import java.awt.event.*;
 
 public class MenuFrame extends JFrame {
     JButton btnServer = new JButton("Quiero ser servidor");
     JButton btnClient = new JButton("Quiero ser Cliente");
+    MenuFrame INSTACE;
 
     public MenuFrame() {
+        INSTACE = this;
         this.setSize(270, 400);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
-        this.setTitle("Tres en Raya");
+        this.setTitle("Tres en Raya - Menú");
         this.setResizable(true);
         this.setLayout(null);
         this.add(btnServer);
@@ -38,7 +42,9 @@ public class MenuFrame extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "esperando conexion");
+                FrameEspera frameEspera = new FrameEspera();
+                ServerSocke.getInstanceServer(frameEspera);
+                // INSTACE.dispose();
             }
 
         });
@@ -49,7 +55,7 @@ public class MenuFrame extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "esperando conexion");
+                SessionClienteSocket.getInstance();
             }
 
         });

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Base64;
 
@@ -18,6 +19,10 @@ import view.Frame;
 public class SessionClienteSocket extends Thread {
 
     private static SessionClienteSocket INSTANCE;
+
+    // InetAddress addr = InetAddress.getLocalHost();
+
+    // private String IPLocal;
 
     public static SessionClienteSocket getInstance() {
         if (INSTANCE == null) {
@@ -75,7 +80,8 @@ public class SessionClienteSocket extends Thread {
                     onMensaje(line);
                 }
             } catch (Exception e) {
-                System.out.println("error en hilo socket-session");
+                e.printStackTrace();
+                // System.out.println("error en hilo socket-session");
                 isRun = false;
                 System.exit(0);
             }

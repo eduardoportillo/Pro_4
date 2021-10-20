@@ -1,7 +1,6 @@
 package view;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 
 public class PanelCuadricula extends JPanel implements MouseListener {
@@ -11,6 +10,7 @@ public class PanelCuadricula extends JPanel implements MouseListener {
     private int posicionx;
     private int posicionY;
     private Frame frame;
+    private String marca = "";
 
     public PanelCuadricula(int posicionx, int posicionY, Frame frame) {
         this.posicionx = posicionx;
@@ -23,8 +23,20 @@ public class PanelCuadricula extends JPanel implements MouseListener {
         this.addMouseListener(this);
     }
 
+    public String getMarca() {
+        return marca;
+    }
+
+    public void setMarca(String marca) {
+        this.marca = marca;
+    }
+
     public void marcar(String tipo) {
         JLabel marcado = new JLabel();
+        if (!this.marca.equals("")) {
+            return;
+        }
+        this.marca = tipo;
         marcado.setText(tipo);
         marcado.setBounds(30, 50, 30, 30);
         this.add(marcado);
@@ -35,7 +47,6 @@ public class PanelCuadricula extends JPanel implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent e) {
         frame.notificar(posicionx, posicionY);
-
     }
 
     @Override

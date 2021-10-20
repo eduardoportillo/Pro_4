@@ -63,7 +63,8 @@ public class SocketSesion extends Thread {
                     onMensaje(line);
                 }
             } catch (Exception e) {
-                System.out.println("error en hilo socket-session");
+                e.printStackTrace();
+                // System.out.println(e.getLocalizedMessage());
                 isRun = false;
                 onClose();
             }

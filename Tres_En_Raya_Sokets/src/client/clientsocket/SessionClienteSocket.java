@@ -26,8 +26,8 @@ public class SessionClienteSocket extends Thread {
 
     public static SessionClienteSocket getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new SessionClienteSocket("127.0.0.1", 5000);
         }
+        INSTANCE = new SessionClienteSocket("127.0.0.1", 5000);
         return INSTANCE;
     }
 
@@ -81,7 +81,7 @@ public class SessionClienteSocket extends Thread {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                // System.out.println("error en hilo socket-session");
+                System.out.println("error en hilo socket-session");
                 isRun = false;
                 System.exit(0);
             }
@@ -112,7 +112,7 @@ public class SessionClienteSocket extends Thread {
         this.frame = frame;
     }
 
-    public void send(String line) {
+    public void sendString(String line) {
         response.println(line);
         response.flush();
     }

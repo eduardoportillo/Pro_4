@@ -110,7 +110,7 @@ public class SocketSesion extends Thread {
         this.frame.marcar(obj);
     }
 
-    public void send(String line) {
+    public void sendString(String line) {
         response.println(line);
         response.flush();
     }

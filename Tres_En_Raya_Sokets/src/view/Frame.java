@@ -1,30 +1,25 @@
 package view;
 
-import java.awt.Color;
 import java.util.ArrayList;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.*;
 
 import org.json.JSONObject;
 
 import client.clientsocket.SessionClienteSocket;
-import netscape.javascript.JSObject;
 import server.serversocket.SocketSesion;
 
 public class Frame extends JFrame {
 
-    // JPanel panel = new JPanel();
-    // PanelCuadricula[] paneles = new PanelCuadricula[9];
-
-    // ArrayList<PanelCuadricula> paneles = new ArrayList<PanelCuadricula>();
     PanelCuadricula[][] paneles = new PanelCuadricula[3][3];
 
     JLabel turnoLabel = new JLabel();
 
     private String turno = "server";
+
+    private SessionClienteSocket cliente;
+    private SocketSesion server;
 
     public void init() {
         this.setSize(360, 410);
@@ -41,9 +36,6 @@ public class Frame extends JFrame {
         this.creaPanel();
         this.createBackground();
     }
-
-    private SessionClienteSocket cliente;
-    private SocketSesion server;
 
     public Frame(SessionClienteSocket cliente) {
         this.cliente = cliente;
@@ -102,6 +94,7 @@ public class Frame extends JFrame {
 
         JSONObject obj = new JSONObject();
         PanelCuadricula panel = this.paneles[x][y];
+
         if (!panel.getMarca().equals("")) {
             return;
         }
@@ -114,27 +107,25 @@ public class Frame extends JFrame {
                 return;
             }
 
-            obj.put("marca", "X");
-            // turnoLabel.setText("es turno del server");
-            this.repaint();
-            this.validate();
+            obj.put("marca", "O");
 
-            this.server.send(obj.toString());
+            this.server.sendString(obj.toString());
         } else {
             // soy cliente
             if (!this.turno.equals("cliente")) {
                 return;
             }
-            obj.put("marca", "O");
+            obj.put("marca", "X");
 
-            this.repaint();
-            this.validate();
-
-            this.cliente.send(obj.toString());
+            this.cliente.sendString(obj.toString());
         }
 
         panel.marcar(obj.getString("marca"));
         panel.setMarca(obj.getString("marca"));
+
+        if (empate(paneles, paneles[x][y].getMarca())) {
+            JOptionPane.showMessageDialog(null, "empate");
+        }
 
         if (gano(paneles, paneles[x][y].getMarca())) {
             JOptionPane.showMessageDialog(null, "gana " + paneles[x][y].getMarca());
@@ -160,6 +151,28 @@ public class Frame extends JFrame {
             }
 
         }
+    }
+
+    // public void pintarCirculo(Graphics g) {
+    // g.setColor(Color.BLUE);
+    // g.drawArc(20, 20, 200, 200, 0, 180);
+    // }
+
+    public boolean empate(PanelCuadricula matriz[][], String marca) {
+        int contadorMarca = 0;
+        for (int i = 0; i < matriz.length; i++) {
+            for (int j = 0; j < matriz.length; j++) {
+                if (!paneles[i][j].getMarca().equals("")) {
+                    contadorMarca++;
+                }
+            }
+        }
+
+        if (contadorMarca == 9) {
+            return true;
+        }
+
+        return false;
     }
 
     public boolean gano(PanelCuadricula matriz[][], String marca) {

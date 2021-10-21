@@ -5,7 +5,7 @@ import java.awt.event.*;
 
 public class PanelCuadricula extends JPanel implements MouseListener {
 
-    JLabel label = new JLabel();
+    // JLabel label = new JLabel();
 
     private int posicionx;
     private int posicionY;
@@ -17,9 +17,10 @@ public class PanelCuadricula extends JPanel implements MouseListener {
         this.posicionY = posicionY;
         this.frame = frame;
 
-        this.add(label);
-        label.setBounds(20, 50, 30, 30);
-        label.setText("X: " + posicionx + "\n" + " Y: " + posicionY);
+        // this.add(label);
+        // label.setBounds(20, 50, 30, 30);
+        // label.setText("X: " + posicionx + "\n" + " Y: " + posicionY);
+
         this.addMouseListener(this);
     }
 

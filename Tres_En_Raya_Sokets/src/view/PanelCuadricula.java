@@ -2,6 +2,7 @@ package view;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.*;
 
 public class PanelCuadricula extends JPanel implements MouseListener {
 
@@ -17,10 +18,6 @@ public class PanelCuadricula extends JPanel implements MouseListener {
         this.posicionY = posicionY;
         this.frame = frame;
 
-        // this.add(label);
-        // label.setBounds(20, 50, 30, 30);
-        // label.setText("X: " + posicionx + "\n" + " Y: " + posicionY);
-
         this.addMouseListener(this);
     }
 
@@ -33,16 +30,32 @@ public class PanelCuadricula extends JPanel implements MouseListener {
     }
 
     public void marcar(String tipo) {
-        JLabel marcado = new JLabel();
         if (!this.marca.equals("")) {
             return;
         }
         this.marca = tipo;
-        marcado.setText(tipo);
-        marcado.setBounds(30, 50, 30, 30);
-        this.add(marcado);
         this.repaint();
         this.validate();
+    }
+
+    public void paint(Graphics g) {
+        super.paint(g);
+        Graphics2D G2D = (Graphics2D) g;
+        BasicStroke grosor = new BasicStroke(5);
+        G2D.setStroke(grosor);
+
+        if (marca.equals("")) {
+            return;
+        }
+
+        if (marca.equals("O")) {
+            G2D.setColor(Color.BLUE);
+            G2D.drawOval(15, 15, 70, 70);
+        } else {
+            G2D.setColor(Color.RED);
+            G2D.drawLine(20, 90, 90, 20);
+            G2D.drawLine(20, 20, 90, 90);
+        }
     }
 
     @Override

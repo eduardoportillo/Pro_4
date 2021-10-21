@@ -98,6 +98,7 @@ public class Frame extends JFrame {
         if (!panel.getMarca().equals("")) {
             return;
         }
+
         obj.put("x", x);
         obj.put("y", y);
 
@@ -115,12 +116,14 @@ public class Frame extends JFrame {
             if (!this.turno.equals("cliente")) {
                 return;
             }
+
             obj.put("marca", "X");
 
             this.cliente.sendString(obj.toString());
         }
 
         panel.marcar(obj.getString("marca"));
+
         panel.setMarca(obj.getString("marca"));
 
         if (empate(paneles, paneles[x][y].getMarca())) {

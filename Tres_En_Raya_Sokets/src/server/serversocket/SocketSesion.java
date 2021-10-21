@@ -122,7 +122,7 @@ public class SocketSesion extends Thread {
             oos.writeObject(obj);
             oos.close();
             String b64 = Base64.getEncoder().encodeToString(baos.toByteArray());
-            response.println(b64);
+            // response.println(b64);
         } catch (IOException e) {
             e.printStackTrace();
         }

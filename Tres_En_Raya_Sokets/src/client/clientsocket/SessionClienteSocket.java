@@ -124,7 +124,7 @@ public class SessionClienteSocket extends Thread {
             oos.writeObject(obj);
             oos.close();
             String b64 = Base64.getEncoder().encodeToString(baos.toByteArray());
-            response.println(b64);
+            // response.println(b64);
             observed.firePropertyChange("socketSession", "mensaje", obj.toString());
         } catch (IOException e) {
             e.printStackTrace();

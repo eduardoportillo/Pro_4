@@ -5,9 +5,6 @@ import java.beans.PropertyChangeSupport;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import javax.swing.JOptionPane;
-
-import server.singleton.Sesion;
 import view.Frame;
 import view.FrameEspera;
 
@@ -15,7 +12,6 @@ public class ServerSocke extends Thread {
 
     private static ServerSocke INSTANCE;
     private static FrameEspera fespera;
-    private static int sesionesServerPermitidas = 1;
 
     public static ServerSocke getInstanceServer(FrameEspera espera) {
         fespera = espera;

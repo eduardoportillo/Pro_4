@@ -44,7 +44,7 @@ public class MenuFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 FrameEspera frameEspera = new FrameEspera();
                 ServerSocke.getInstanceServer(frameEspera);
-                INSTACE.dispose();
+                // INSTACE.dispose();
             }
 
         });
@@ -56,7 +56,6 @@ public class MenuFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 SessionClienteSocket.getInstance();
-                INSTACE.dispose();
             }
 
         });

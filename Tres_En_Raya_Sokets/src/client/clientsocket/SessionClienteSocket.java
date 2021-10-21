@@ -12,24 +12,22 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Base64;
 
-import javax.swing.JOptionPane;
 import org.json.JSONObject;
 
 import view.Frame;
-import view.MenuFrame;
 
 public class SessionClienteSocket extends Thread {
 
     private static SessionClienteSocket INSTANCE;
+
     // InetAddress addr = InetAddress.getLocalHost();
 
     // private String IPLocal;
 
     public static SessionClienteSocket getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new SessionClienteSocket("127.0.0.1", 5000);
         }
-
+        INSTANCE = new SessionClienteSocket("127.0.0.1", 5000);
         return INSTANCE;
     }
 
@@ -65,12 +63,8 @@ public class SessionClienteSocket extends Thread {
             response = new PrintWriter(socket.getOutputStream(), true);
 
         } catch (Exception e1) {
-            System.out.println("No se pilla un servidor");
             System.out.println("Error al iniciarlizar request and response");
-            JOptionPane.showMessageDialog(null, "No se pilla un servidor");
-            // new MenuFrame();
-            // isRun = true;
-            // System.exit(0);
+            System.exit(0);
         }
         isRun = true;
         onOpen();
@@ -86,11 +80,10 @@ public class SessionClienteSocket extends Thread {
                     onMensaje(line);
                 }
             } catch (Exception e) {
-                // e.printStackTrace();
-                System.out.println("Error en hilo socket-session");
-                // new MenuFrame();
+                e.printStackTrace();
+                System.out.println("error en hilo socket-session");
                 isRun = false;
-                // System.exit(0);
+                System.exit(0);
             }
         }
     }
@@ -104,15 +97,10 @@ public class SessionClienteSocket extends Thread {
     }
 
     public void onOpen() {
-        try {
-            System.out.println("Nueva session iniciada con exito:::");
-            System.out.println("IP:" + socket.getInetAddress());
-            System.out.println("PORT:" + socket.getPort());
-            new Frame(this);
-        } catch (Exception e) {
-            System.err.println("Error: no se puede inicar interfaz");
-        }
-
+        System.out.println("Nueva session iniciada con exito:::");
+        System.out.println("IP:" + socket.getInetAddress());
+        System.out.println("PORT:" + socket.getPort());
+        new Frame(this);
     }
 
     public void onMensaje(String line) {
@@ -124,27 +112,23 @@ public class SessionClienteSocket extends Thread {
         this.frame = frame;
     }
 
-    public Frame getFrame() {
-        return frame;
-    }
-
     public void sendString(String line) {
         response.println(line);
         response.flush();
     }
 
-    // public void sendObject(Object obj) {
-    // try {
-    // ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    // ObjectOutputStream oos = new ObjectOutputStream(baos);
-    // oos.writeObject(obj);
-    // oos.close();
-    // String b64 = Base64.getEncoder().encodeToString(baos.toByteArray());
-    // // response.println(b64);
-    // observed.firePropertyChange("socketSession", "mensaje", obj.toString());
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // }
-    // }
+    public void sendObject(Object obj) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(obj);
+            oos.close();
+            String b64 = Base64.getEncoder().encodeToString(baos.toByteArray());
+            // response.println(b64);
+            observed.firePropertyChange("socketSession", "mensaje", obj.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

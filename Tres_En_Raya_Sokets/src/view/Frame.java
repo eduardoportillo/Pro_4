@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 
 import org.json.JSONObject;
 
@@ -21,10 +20,8 @@ public class Frame extends JFrame {
 
     private SessionClienteSocket cliente;
     private SocketSesion server;
-    private Frame INSTACE;
 
     public void init() {
-        this.INSTACE = this;
         this.setSize(360, 410);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -38,15 +35,6 @@ public class Frame extends JFrame {
 
         this.creaPanel();
         this.createBackground();
-
-    }
-
-    public Frame(SocketSesion server) {
-        this.server = server;
-        this.server.setFrame(this);
-        init();
-        this.setTitle("Tres en Raya - Server");
-        turnoLabel.setText("es tu turno");
     }
 
     public Frame(SessionClienteSocket cliente) {
@@ -55,6 +43,14 @@ public class Frame extends JFrame {
         init();
         this.setTitle("Tres en Raya - cliente");
         turnoLabel.setText("no es tu turno. Esperando al oponente...");
+    }
+
+    public Frame(SocketSesion server) {
+        this.server = server;
+        this.server.setFrame(this);
+        init();
+        this.setTitle("Tres en Raya - Server");
+        turnoLabel.setText("es tu turno");
     }
 
     public void createBackground() {
@@ -131,19 +127,13 @@ public class Frame extends JFrame {
         panel.setMarca(obj.getString("marca"));
 
         if (empate(paneles, paneles[x][y].getMarca())) {
-            JOptionPane.showMessageDialog(null, "Empate");
+            JOptionPane.showMessageDialog(null, "empate");
             System.exit(0);
-            // this.server.getFrame().dispose();
-            // this.cliente.getFrame().dispose();
-
         }
 
         if (gano(paneles, paneles[x][y].getMarca())) {
             JOptionPane.showMessageDialog(null, "gana " + paneles[x][y].getMarca());
             System.exit(0);
-            // this.server.getFrame().dispose();
-            // this.cliente.getFrame().dispose();
-
         }
 
         cambiarTurno();
@@ -167,6 +157,11 @@ public class Frame extends JFrame {
 
         }
     }
+
+    // public void pintarCirculo(Graphics g) {
+    // g.setColor(Color.BLUE);
+    // g.drawArc(20, 20, 200, 200, 0, 180);
+    // }
 
     public boolean empate(PanelCuadricula matriz[][], String marca) {
         int contadorMarca = 0;

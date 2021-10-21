@@ -12,7 +12,7 @@ public class FrameEspera extends JFrame {
     public FrameEspera() {
 
         this.setSize(300, 150);
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
         this.setTitle("Tres en Raya - Esperando Conexion");

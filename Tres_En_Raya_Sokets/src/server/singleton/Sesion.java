@@ -2,6 +2,8 @@ package server.singleton;
 
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
 import server.serversocket.SocketSesion;
 
 public class Sesion {
@@ -12,6 +14,7 @@ public class Sesion {
         if (listasessiones == null) {
             listasessiones = new ArrayList<SocketSesion>();
         }
+
         return listasessiones;
     }
 }

@@ -75,6 +75,10 @@ public class SocketSesion extends Thread {
         this.frame = frame;
     }
 
+    public Frame getFrame() {
+        return frame;
+    }
+
     public Socket getSocket() {
         return socket;
     }
@@ -115,16 +119,16 @@ public class SocketSesion extends Thread {
         response.flush();
     }
 
-    public void sendObject(Object obj) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(obj);
-            oos.close();
-            String b64 = Base64.getEncoder().encodeToString(baos.toByteArray());
-            // response.println(b64);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    // public void sendObject(Object obj) {
+    // try {
+    // ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    // ObjectOutputStream oos = new ObjectOutputStream(baos);
+    // oos.writeObject(obj);
+    // oos.close();
+    // String b64 = Base64.getEncoder().encodeToString(baos.toByteArray());
+    // // response.println(b64);
+    // } catch (IOException e) {
+    // e.printStackTrace();
+    // }
+    // }
 }

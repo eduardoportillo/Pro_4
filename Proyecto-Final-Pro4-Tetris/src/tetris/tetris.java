@@ -7,7 +7,7 @@ import java.util.*;
 
 import javax.swing.JOptionPane;
 
-public class Tetris extends Panel implements KeyListener, Runnable {
+public class Tetris extends Panel implements KeyListener {
 
     // Dimensiones del tablero
     private int heightTablero = 22;
@@ -19,7 +19,7 @@ public class Tetris extends Panel implements KeyListener, Runnable {
     private Graphics graficos;
     private Dimension sizeFrame;
 
-    private final int[] niveles = { 800, 720, 630, 550, 470, 380, 300, 220, 130, 100,  20};
+    private final int[] niveles = { 800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 20 };
 
     private final int bloqueoGlobal = 1000;
 
@@ -38,7 +38,7 @@ public class Tetris extends Panel implements KeyListener, Runnable {
     // logica de esperas dentro del juego // [ ] ver si se implementa pieza en
     // espera en le juego
     // private int esperaId = 0;
-    // private boolean estaEnEspera = false;
+    private boolean estaEnEspera = false;
 
     private int tiempo = 0;
     private int retraso = niveles[0];
@@ -74,6 +74,7 @@ public class Tetris extends Panel implements KeyListener, Runnable {
             }
 
             if (tiempo >= retraso) {
+
                 if (piezaActual == null) {
                     piezaActual = pieza.getPiezaActiva(cola.poll());
                 }
@@ -95,12 +96,11 @@ public class Tetris extends Panel implements KeyListener, Runnable {
 
                     // coloque la pieza y permita que el usuario sostenga una pieza. El tiempo de
                     // bloque también se restablece
-                    // synchronized (piezaActual) { //[ ]v ver si esto afecta en la funcionalidad
-                    // del juego
-                    // piezaActual = null;
-                    // estaEnEspera = false;
-                    // tiempoBloqueo = 0;
-                    // }
+                    synchronized (piezaActual) { // [ ]v ver si esto afecta en la funcionalidad del juego
+                        piezaActual = null;
+                        estaEnEspera = false;
+                        tiempoBloqueo = 0;
+                    }
 
                     // limpiar las líneas y ajustar el nivel
                     despejarLineas();
@@ -126,11 +126,28 @@ public class Tetris extends Panel implements KeyListener, Runnable {
                 for (int i = 0; i < 10; i++) {
                     cnt += tablero[j][i] != 0 ? 1 : 0;
                 }
-                if (cnt == widthTablero) {
-                    indice = j;
-                    break;
+
+            }
+            if (indice == -1) {
+                break;
+            }
+            // eliminando las líneas completas una por una
+            int[][] temp = new int[heightTablero][10];
+            for (int i = 0; i < heightTablero; i++) {
+                for (int j = 0; j < 10; j++) {
+                    temp[i][j] = tablero[i][j];
                 }
             }
+            for (int i = 0; i < indice + 1; i++) {
+                for (int j = 0; j < 10; j++) {
+                    if (i == 0) {
+                        tablero[i][j] = 0;
+                    } else {
+                        tablero[i][j] = temp[i - 1][j];
+                    }
+                }
+            }
+            lineasDespejadas++;
         }
     }
 
@@ -182,7 +199,7 @@ public class Tetris extends Panel implements KeyListener, Runnable {
             boolean isValid = true;
             while (isValid) {
                 d++;
-                for (Cuadricula cuadricula : piezaActual.pos) {
+                for (Cuadricula cuadricula : piezaActual.pos) { // BUG no pilla cuadricula de la piezaAtual.pos
                     if (cuadricula.posX + d >= heightTablero || tablero[cuadricula.posX + d][cuadricula.posY] != 0) {
                         isValid = false;
                     }
@@ -217,7 +234,6 @@ public class Tetris extends Panel implements KeyListener, Runnable {
         if (juegoFinalizado) {
             JOptionPane.showMessageDialog(null, "JUEGO FINALIZADO -- Q PARA SALIR; R PARA REINICIAR");
         }
-        // graficos.drawString("EN ESPERA", 300, 300); // [ ] ver si se queda espera
         graficos.drawString("SIGUIENTE", 300, 50);
 
         for (int k = 0; k < 4; k++) {
@@ -276,7 +292,7 @@ public class Tetris extends Panel implements KeyListener, Runnable {
     }
 
     @Override
-    public void keyPressed(KeyEvent e) {
+    public void keyReleased(KeyEvent e) {
         // cuando se oprime hacia abajo, la caída suave se desactiva
         if (e.getKeyCode() == KeyEvent.VK_DOWN) {
             retraso = nivel >= 20 ? niveles[10] : niveles[nivel];
@@ -284,16 +300,11 @@ public class Tetris extends Panel implements KeyListener, Runnable {
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {
-        // tres casos que manejan cuando el usuario ajusta los estados del juego (ACTIVO, PAUSADO, CERRADO)
-        // if (e.getKeyCode() == KeyEvent.VK_P) {
-        //     estaPausado = !estaPausado;
-        //     repaint();
-        // } 
+    public void keyPressed(KeyEvent e) {
 
         if (e.getKeyCode() == KeyEvent.VK_Q) {
             System.exit(0);
-        } 
+        }
 
         if (e.getKeyCode() == KeyEvent.VK_R) {
             piezaActual = null;
@@ -301,74 +312,51 @@ public class Tetris extends Panel implements KeyListener, Runnable {
             cola.clear();
             nivel = 0;
             lineasDespejadas = 0;
-            // esperaId = 0;
-            // estaEnEspera = false;
             juegoFinalizado = false;
             repaint();
             return;
         }
-        
+
         if (piezaActual == null) {
             return;
         }
 
         switch (e.getKeyCode()) {
-            // Mover pieza a la izquierda
-            case KeyEvent.VK_LEFT:
-                moverPieza(0, -1);
-                repaint();
-                break;
-            // Mover pieza a la derecha
-            case KeyEvent.VK_RIGHT:
-                moverPieza(0, 1);
-                repaint();
-                break;
-            // rotar sentido horario
-            case KeyEvent.VK_UP:
-            case KeyEvent.VK_X:
-                girarDerecha();
-                break;
-            // rotar sentido antihorario
-            // case KeyEvent.VK_Z:
-            //     girarIzquierda();
-            //     break;
-            // caída suave
-            case KeyEvent.VK_DOWN:
-                // retraso = (nivel >= 20 ? niveles[10] : niveles[nivel]) / 8;
-                break;
-            // pieza en espera //[ ] ver si se introduce piesa en espera
-            // case KeyEvent.VK_SHIFT:
-            // case KeyEvent.VK_C:
-            //     if (estaEnEspera) {
-            //         break;
-            //     }
-            //     if (esperaId == 0) {
-            //         esperaId = piezaActual.id;
-            //         piezaActual = null;
-            //     } else {
-            //         int temp = esperaId;
-            //         esperaId = piezaActual.id;
-            //         piezaActual = p.obtenerActivo(temp - 1);
-            //     }
-            //     estaEnEspera = true;
-            //     tiempo = 1 << 30;
-            //     break;
+        // Mover pieza a la izquierda
+        case KeyEvent.VK_LEFT:
+            moverPieza(0, -1);
+            repaint();
+            break;
+        // Mover pieza a la derecha
+        case KeyEvent.VK_RIGHT:
+            moverPieza(0, 1);
+            repaint();
+            break;
 
-            // caída dura
-            case KeyEvent.VK_SPACE:
-                tiempo = 1 << 30;
-                tiempoBloqueo = 1 << 30;
+        // rotar
+        case KeyEvent.VK_UP:
+            girarDerecha();
+            break;
+
+        case KeyEvent.VK_DOWN:
+            retraso = (nivel >= 20 ? niveles[10] : niveles[nivel]) / 8;
+            break;
+
+        case KeyEvent.VK_SPACE:
+            tiempo = 1 << 30;
+            tiempoBloqueo = 1 << 30;
 
             // caída firme
-            case KeyEvent.VK_CONTROL:
-                tiempo = 1 << 30;
-                while (moverPieza(1, 0));
-                break;
+        case KeyEvent.VK_CONTROL:
+            tiempo = 1 << 30;
+            while (moverPieza(1, 0))
+                ;
+            break;
         }
         repaint();
     }
 
-    private void girarDerecha() { 
+    private void girarDerecha() {
         if (piezaActual.id == 1) {
             return;
         }
@@ -388,9 +376,7 @@ public class Tetris extends Panel implements KeyListener, Runnable {
 
     }
 
-
-
-    private void girar(Cuadricula[] pos, int id) { 
+    private void girar(Cuadricula[] pos, int id) {
         for (int i = 0; i < 5; i++) {
             boolean valid = true;
             int dFila = piezaActual.id == 2 ? moverFila2[id][i] : moverFila1[id][i];
@@ -423,49 +409,24 @@ public class Tetris extends Panel implements KeyListener, Runnable {
         }
     }
 
+    // @Override
+    // public void run() {
+    // // TODO Auto-generated method stub
+    // }
 
+    private final int[][] moverColumna1 = { { 0, -1, -1, 0, -1 }, { 0, +1, +1, 0, +1 }, { 0, +1, +1, 0, +1 },
+            { 0, +1, +1, 0, +1 }, { 0, +1, +1, 0, +1 }, { 0, -1, -1, 0, -1 }, { 0, -1, -1, 0, -1 },
+            { 0, -1, -1, 0, -1 } };
 
-    @Override
-    public void run() {
-        // TODO Auto-generated method stub
-    }
+    private final int[][] moverFila1 = { { 0, 0, +1, 0, -2 }, { 0, 0, +1, 0, -2 }, { 0, 0, -1, 0, +2 },
+            { 0, 0, -1, 0, +2 }, { 0, 0, +1, 0, -2 }, { 0, 0, +1, 0, -2 }, { 0, 0, -1, 0, +2 }, { 0, 0, -1, 0, +2 } };
 
-    private final int[][] moverColumna1 = {
-        {0, -1, -1, 0, -1},
-        {0, +1, +1, 0, +1},
-        {0, +1, +1, 0, +1},
-        {0, +1, +1, 0, +1},
-        {0, +1, +1, 0, +1},
-        {0, -1, -1, 0, -1},
-        {0, -1, -1, 0, -1},
-        {0, -1, -1, 0, -1}};
-    
-        private final int[][] moverFila1 = {{0, 0, +1, 0, -2},
-        {0, 0, +1, 0, -2},
-        {0, 0, -1, 0, +2},
-        {0, 0, -1, 0, +2},
-        {0, 0, +1, 0, -2},
-        {0, 0, +1, 0, -2},
-        {0, 0, -1, 0, +2},
-        {0, 0, -1, 0, +2}};
-    
-        // bloque I
-        private final int[][] moverColumna2 = {{0, -2, +1, -2, +1},
-        {0, -1, +2, -1, +2},
-        {0, -1, +2, -1, +2},
-        {0, +2, -1, +2, -1},
-        {0, +2, -1, +2, -1},
-        {0, +1, -2, +1, -2},
-        {0, +1, -2, +1, -2},
-        {0, -2, +1, -2, +1}};
-    
-        private final int[][] moverFila2 = {{0, 0, 0, -1, +2},
-        {0, 0, 0, +2, -1},
-        {0, 0, 0, +2, -1},
-        {0, 0, 0, +1, -2},
-        {0, 0, 0, +1, -2},
-        {0, 0, 0, -2, +1},
-        {0, 0, 0, -2, +1},
-        {0, 0, 0, -1, +2}};
+    // bloque I
+    private final int[][] moverColumna2 = { { 0, -2, +1, -2, +1 }, { 0, -1, +2, -1, +2 }, { 0, -1, +2, -1, +2 },
+            { 0, +2, -1, +2, -1 }, { 0, +2, -1, +2, -1 }, { 0, +1, -2, +1, -2 }, { 0, +1, -2, +1, -2 },
+            { 0, -2, +1, -2, +1 } };
+
+    private final int[][] moverFila2 = { { 0, 0, 0, -1, +2 }, { 0, 0, 0, +2, -1 }, { 0, 0, 0, +2, -1 },
+            { 0, 0, 0, +1, -2 }, { 0, 0, 0, +1, -2 }, { 0, 0, 0, -2, +1 }, { 0, 0, 0, -2, +1 }, { 0, 0, 0, -1, +2 } };
 
 }

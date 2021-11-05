@@ -28,7 +28,7 @@ public class Pieza {
         for (int i = 0; i < 4; i++) {
             piezaNueva[i] = new Cuadricula(FormaPiezas[idPieza][i].posX, FormaPiezas[idPieza][i].posY);
         }
-        return new PiezaActiva(piezaNueva, idPieza++);
+        return new PiezaActiva(piezaNueva, idPieza + 1);
     }
 
     public int[] getPiezaRandom(){

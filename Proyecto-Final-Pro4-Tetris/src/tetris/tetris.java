@@ -126,6 +126,10 @@ public class Tetris extends Panel implements KeyListener {
                 for (int i = 0; i < 10; i++) {
                     cnt += tablero[j][i] != 0 ? 1 : 0;
                 }
+                if (cnt == 10) { 
+                    indice = j;
+                    break;
+                }
 
             }
             if (indice == -1) {

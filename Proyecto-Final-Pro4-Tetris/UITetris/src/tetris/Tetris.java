@@ -3,15 +3,25 @@ package tetris;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 
 import javax.swing.JOptionPane;
+import org.json.JSONObject;
+import socketclient.SocketSession;
 
-public class Tetris extends Panel implements KeyListener {
+public class Tetris extends Panel implements KeyListener, PropertyChangeListener {
 
-    // Dimensiones del tablero
+    public String idGame;
+    public String idSession;
+    JSONObject jsonFinDelJuego;
+
     private int heightTablero = 22;
     private int widthTablero = 10;
+    final int maxSizeheightTablero = heightTablero;
+
+    public static boolean multiplayer = false;
 
     private int[][] tablero = new int[heightTablero][widthTablero];
 
@@ -19,7 +29,7 @@ public class Tetris extends Panel implements KeyListener {
     private Graphics graficos;
     private Dimension sizeFrame;
 
-    private final int[] niveles = { 800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 20 };
+    private final int[] niveles = { 800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 20 }; 
 
     private final int bloqueoGlobal = 1000;
 
@@ -35,9 +45,6 @@ public class Tetris extends Panel implements KeyListener {
 
     private PiezaActiva piezaActual = null;
 
-    // logica de esperas dentro del juego // [ ] ver si se implementa pieza en
-    // espera en le juego
-    // private int esperaId = 0;
     private boolean estaEnEspera = false;
 
     private int tiempo = 0;
@@ -46,22 +53,31 @@ public class Tetris extends Panel implements KeyListener {
     private int tiempoBloqueo = 0;
     private int lineasDespejadas = 0;
 
-    // constantes para la interfaz gráfica
     private final int[] posUI = { 50, 100, 150, 200, 300 };
 
     private boolean juegoFinalizado = false;
 
-    public Tetris() {
-        timer.scheduleAtFixedRate(mover, 1000, 1);
+    public Tetris(String idGame, String idSession) {
+        this.jsonFinDelJuego = new JSONObject();
+        this.idGame = idGame;
+        this.idSession = idSession;
+
         addKeyListener(this);
+
+        if (multiplayer == true) {
+            SocketSession.getInstance("mensaje").addObserver(this);
+            timer.scheduleAtFixedRate(mover, 1000, 1);
+        } else {
+            timer.scheduleAtFixedRate(mover, 1000, 1);
+        }
+
     }
 
     private Timer timer = new Timer();
     private TimerTask mover = new TimerTask() {
-
         @Override
         public void run() {
-
+            final String id_game = idGame;
             if (juegoFinalizado) {
                 return;
             }
@@ -91,20 +107,24 @@ public class Tetris extends Panel implements KeyListener {
                         }
                     }
                     if (juegoFinalizado) {
-                        JOptionPane.showMessageDialog(null, "JUEGO FINALIZADO -- Q PARA SALIR; R PARA REINICIAR");
+                        if (multiplayer == true) {
+                            loseGame();
+                        } else {
+                            JOptionPane.showMessageDialog(null,
+                                    "Perdiste!!!. Oprima Q Si Desea Salir o R Si Desea Reiniciar.");
+                        }
                     }
 
                     // coloque la pieza y permita que el usuario sostenga una pieza. El tiempo de
                     // bloque también se restablece
-                    synchronized (piezaActual) { // [ ]v ver si esto afecta en la funcionalidad del juego
+                    synchronized (piezaActual) {
                         piezaActual = null;
                         estaEnEspera = false;
                         tiempoBloqueo = 0;
                     }
 
-                    // limpiar las líneas y ajustar el nivel
                     despejarLineas();
-                    ajustarNivel();
+                    ajustarNivel(); 
 
                     // inmediatamente consigue otra pieza
                     tiempo = retraso;
@@ -126,15 +146,20 @@ public class Tetris extends Panel implements KeyListener {
                 for (int i = 0; i < 10; i++) {
                     cnt += tablero[j][i] != 0 ? 1 : 0;
                 }
-                if (cnt == 10) { 
+                if (cnt == 10) {
                     indice = j;
+                    if (multiplayer == true) {
+                        sendCompleteLine();
+                    }
                     break;
                 }
 
             }
+
             if (indice == -1) {
                 break;
             }
+
             // eliminando las líneas completas una por una
             int[][] temp = new int[heightTablero][10];
             for (int i = 0; i < heightTablero; i++) {
@@ -155,7 +180,49 @@ public class Tetris extends Panel implements KeyListener {
         }
     }
 
-    // ajustar el nivel según el número de líneas despejadas
+    public void sendCompleteLine() {
+        JSONObject jsonSendLinea = new JSONObject();
+        jsonSendLinea.put("type", "completeLine");
+        jsonSendLinea.put("idGame", this.idGame);
+        SocketSession.getInstance("mensaje").sendString(jsonSendLinea.toString());
+    }
+
+    protected void quitarPiso(int lineas) {
+        System.out.println("entor a metodo quitarPiso()");
+        for (int i = 0; i < heightTablero; i++) {
+            for (int j = 0; j < widthTablero; j++) {
+                if (tablero[i][j] != 0 && i - lineas < 0) {
+                    loseGame();
+                } else if (i - lineas >= 0) {
+                    tablero[i - lineas][j] = tablero[i][j];
+                }
+            }
+        }
+        if (heightTablero > 0) {
+            heightTablero--;
+            System.out.println("Piso Quitado. Cantidad de Pisos Restantes: " + heightTablero);
+        }
+        repaint();
+    }
+
+    protected void añadirPiso(int lineas) { 
+        System.out.println("entor a metodo añadirPiso()");
+
+        if (heightTablero < maxSizeheightTablero) {
+            for (int i = 0; i < heightTablero; i++) {
+                for (int j = 0; j < widthTablero; j++) {
+                    if (i + lineas <= maxSizeheightTablero) {
+                        tablero[i + lineas][j] = tablero[i][j];
+                        return;
+                    }
+                }
+            }
+            heightTablero++;
+            System.out.println("Piso Añadido. Cantidad de Pisos Restantes: " + heightTablero);
+            repaint();
+        }
+    }
+
     private void ajustarNivel() {
         nivel = lineasDespejadas / 4;
         if (nivel >= 9) {
@@ -182,8 +249,6 @@ public class Tetris extends Panel implements KeyListener {
 
     }
 
-    // pinta la cuadiculas dentro del tablero tomando referecia de los colores en la
-    // matriz
     private void mostrarTablero() {
         for (int i = 2; i < heightTablero; i++) {
             for (int j = 0; j < widthTablero; j++) {
@@ -203,7 +268,7 @@ public class Tetris extends Panel implements KeyListener {
             boolean isValid = true;
             while (isValid) {
                 d++;
-                for (Cuadricula cuadricula : piezaActual.pos) { // BUG no pilla cuadricula de la piezaAtual.pos
+                for (Cuadricula cuadricula : piezaActual.pos) { 
                     if (cuadricula.posX + d >= heightTablero || tablero[cuadricula.posX + d][cuadricula.posY] != 0) {
                         isValid = false;
                     }
@@ -228,15 +293,15 @@ public class Tetris extends Panel implements KeyListener {
     }
 
     // pinta la interfaz gráfica
-    private void mostrarUI() { // [ ] posteriormente cambiar la interfaz para que no sea igual
+    private void mostrarUI() {
         graficos.setColor(UIColor);
-        // graficos.drawString("LINEAS DESPEJADAS: " + lineasDespejadas, 10, 20);
-        // graficos.drawString("NIVEL ACTUAL: " + nivel, 10, 40);
-        // if (estaPausado) { // [ ] definir que hacer con la pausa
-        // graficos.drawString("PAUSADO", 10, 30);
-        // }
+        graficos.drawString("LINEAS DESPEJADAS: " + lineasDespejadas, 10, 20);
+        graficos.drawString("NIVEL ACTUAL: " + nivel, 10, 40);
+
         if (juegoFinalizado) {
-            JOptionPane.showMessageDialog(null, "JUEGO FINALIZADO -- Q PARA SALIR; R PARA REINICIAR");
+            if (multiplayer == true) {
+                loseGame();
+            }
         }
         graficos.drawString("SIGUIENTE", 300, 50);
 
@@ -287,77 +352,6 @@ public class Tetris extends Panel implements KeyListener {
         piezaActual.loFila += posX;
         piezaActual.hiFila += posX;
         return true;
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        // cuando se oprime hacia abajo, la caída suave se desactiva
-        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            retraso = nivel >= 20 ? niveles[10] : niveles[nivel];
-        }
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-
-        if (e.getKeyCode() == KeyEvent.VK_Q) {
-            System.exit(0);
-        }
-
-        if (e.getKeyCode() == KeyEvent.VK_R) {
-            piezaActual = null;
-            tablero = new int[heightTablero][widthTablero];
-            cola.clear();
-            nivel = 0;
-            lineasDespejadas = 0;
-            juegoFinalizado = false;
-            repaint();
-            return;
-        }
-
-        if (piezaActual == null) {
-            return;
-        }
-
-        switch (e.getKeyCode()) {
-        // Mover pieza a la izquierda
-        case KeyEvent.VK_LEFT:
-            moverPieza(0, -1);
-            repaint();
-            break;
-        // Mover pieza a la derecha
-        case KeyEvent.VK_RIGHT:
-            moverPieza(0, 1);
-            repaint();
-            break;
-
-        // rotar
-        case KeyEvent.VK_UP:
-            girarDerecha();
-            break;
-
-        case KeyEvent.VK_DOWN:
-            retraso = (nivel >= 20 ? niveles[10] : niveles[nivel]) / 8;
-            break;
-
-        case KeyEvent.VK_SPACE:
-            tiempo = 1 << 30;
-            tiempoBloqueo = 1 << 30;
-
-            // caída firme
-        case KeyEvent.VK_CONTROL:
-            tiempo = 1 << 30;
-            while (moverPieza(1, 0))
-                ;
-            break;
-        }
-        repaint();
     }
 
     private void girarDerecha() {
@@ -413,10 +407,81 @@ public class Tetris extends Panel implements KeyListener {
         }
     }
 
-    // @Override
-    // public void run() {
-    // // TODO Auto-generated method stub
-    // }
+    private void loseGame() {
+        if (multiplayer == true) {
+            jsonFinDelJuego.put("type", "loseGame");
+            jsonFinDelJuego.put("idGame", this.idGame);
+            SocketSession.getInstance("mensaje").sendString(jsonFinDelJuego.toString());
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            retraso = nivel >= 20 ? niveles[10] : niveles[nivel];
+        }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+        if (e.getKeyCode() == KeyEvent.VK_Q) {
+            System.exit(0);
+        }
+
+        if (multiplayer == false) {
+            if (e.getKeyCode() == KeyEvent.VK_R) {
+                piezaActual = null;
+                tablero = new int[heightTablero][widthTablero];
+                cola.clear();
+                nivel = 0;
+                lineasDespejadas = 0;
+                juegoFinalizado = false;
+                repaint();
+                return;
+            }
+        }
+
+        if (piezaActual == null) {
+            return;
+        }
+
+        switch (e.getKeyCode()) {
+
+        case KeyEvent.VK_LEFT:
+            moverPieza(0, -1);
+            repaint();
+            break;
+
+        case KeyEvent.VK_RIGHT:
+            moverPieza(0, 1);
+            repaint();
+            break;
+
+        case KeyEvent.VK_UP:
+            girarDerecha();
+            break;
+
+        case KeyEvent.VK_DOWN:
+            retraso = (nivel >= 20 ? niveles[10] : niveles[nivel]) / 8;
+            break;
+
+        case KeyEvent.VK_SPACE:
+            tiempo = 1 << 30;
+            tiempoBloqueo = 1 << 30;
+
+        case KeyEvent.VK_CONTROL:
+            tiempo = 1 << 30;
+            while (moverPieza(1, 0))
+                ;
+            break;
+        }
+        repaint();
+    }
 
     private final int[][] moverColumna1 = { { 0, -1, -1, 0, -1 }, { 0, +1, +1, 0, +1 }, { 0, +1, +1, 0, +1 },
             { 0, +1, +1, 0, +1 }, { 0, +1, +1, 0, +1 }, { 0, -1, -1, 0, -1 }, { 0, -1, -1, 0, -1 },
@@ -432,5 +497,39 @@ public class Tetris extends Panel implements KeyListener {
 
     private final int[][] moverFila2 = { { 0, 0, 0, -1, +2 }, { 0, 0, 0, +2, -1 }, { 0, 0, 0, +2, -1 },
             { 0, 0, 0, +1, -2 }, { 0, 0, 0, +1, -2 }, { 0, 0, 0, -2, +1 }, { 0, 0, 0, -2, +1 }, { 0, 0, 0, -1, +2 } };
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        JSONObject jsonWR = (JSONObject) evt.getNewValue();
+
+        switch (jsonWR.getString("type")) {
+        case "completeLine":
+
+            if (!jsonWR.getString("idSession").equals(this.idSession)) {
+                quitarPiso(1);
+            }
+
+            if (jsonWR.getString("idSession").equals(this.idSession)) {
+                añadirPiso(1);
+            }
+            break;
+
+        case "loseGame":
+            if (jsonWR.getString("idSession").equals(this.idSession)) {
+                juegoFinalizado = true;
+                JOptionPane.showMessageDialog(null,
+                        "Perdiste!!! Si Deseas Saber quien Gano Espere o Oprima Q Si Desea Salir.");
+            }
+            break;
+        case "endGame":
+            juegoFinalizado = true;
+            if (jsonWR.getString("SessionIdWinner").equals(this.idSession)) {
+                JOptionPane.showMessageDialog(null, "Ganaste!!!!!, Muchas Felicidades. Oprima Q Para Salir.");
+            } else {
+                JOptionPane.showMessageDialog(null, "El Ganador es: " + jsonWR.getString("NameWinner"));
+            }
+            break;
+        }
+    }
 
 }

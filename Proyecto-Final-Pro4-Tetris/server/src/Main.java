@@ -1,7 +1,7 @@
-import UIComponents.FrameTetris;
+import serversocket.server.ServerS;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        FrameTetris tetris = new FrameTetris();
+        ServerS severSoket = new ServerS(5000);
     }
-}
+}   

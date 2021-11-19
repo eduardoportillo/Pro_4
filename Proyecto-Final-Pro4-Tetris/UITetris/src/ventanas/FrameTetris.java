@@ -1,4 +1,4 @@
-package UIComponents;
+package ventanas;
 
 import java.awt.Frame;
 
@@ -7,15 +7,16 @@ import tetris.Tetris;
 public class FrameTetris extends Frame {
 
     private Tetris tetris;
-
-    public FrameTetris() {
+    
+    public FrameTetris(String idGame, String idSession) {
+        
+        this.setTitle("Sesion del Jugador: "+idSession);
+        this.setResizable(false);
         setSize(400, 600);
         setResizable(true);
-        // this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        // setUndecorated(true);
         setLocationRelativeTo(null);
 
-        tetris = new Tetris();
+        tetris = new Tetris(idGame, idSession);
         add(tetris);
 
         setVisible(true);
